@@ -1,0 +1,16 @@
+Package: gMIC
+Type: Package
+Title: Group Sparsity via Approximated Information Criteria
+Version: 0.1.0
+Author: Liqun Yu, Xiaogang Su, Nan Lin
+Maintainer: Liqun Yu <yuliqun88@gmail.com>
+Description: This package implements a group variable selection method by minimizing a smoothed approximation of the information criterion.
+    The gMIC algorithm is free of penalization parameter tuning.
+License: GPL-2
+Encoding: UTF-8
+LazyData: true
+LinkingTo: Rcpp,RcppArmadillo
+Imports: Rcpp,RcppArmadillo, GenSA, Matrix, numDeriv
+RoxygenNote: 6.0.1
+NeedsCompilation: yes
+Packaged: 2018-05-01 18:14:26 UTC; Liqun
