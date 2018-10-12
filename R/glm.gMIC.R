@@ -76,6 +76,7 @@ group.pval <- function(formula, data, family, intercept, gamma_hat, group){
 #' group = c(1,1,1, 2,2,2,rep(3:10,each=3))
 #' rho1 = 0.1; rho2 = 0.6
 #' COV = sig(p,rho1) + bdiag(rep(list(sig(3,rho2)),p/3))
+#' set.seed(1234)
 #' X = mvrnorm(n,rep(0,p),COV)
 #' z = X%*%bt; pr = 1/(1+exp(-z))
 #' y = rbinom(n,1,pr)
@@ -184,7 +185,7 @@ glm.gMIC <- function(formula, family = c("gaussian", "binomial", "poisson"), dat
                       method = "SANN", control = list(maxit=maxit.global, trace=F, reltol=epsilon),
                       group=group,X=X, y=Y, lambda=lambda, a=a0, family = family0)
     betavec1 <- opt.fit1$par; #
-    opt.fit2 <- optim(par=beta0, fn=fun, gr = grad,
+    opt.fit2 <- optim(par=betavec1, fn=fun, gr = grad,
                       method = "BFGS", control = list(maxit=maxit.local, trace=F, reltol=epsilon),
                       group=group, X=X, y=Y, lambda=lambda, a=a0, family = family0)
     # betavec20 <- opt.fit2$par
@@ -213,8 +214,8 @@ glm.gMIC <- function(formula, family = c("gaussian", "binomial", "poisson"), dat
   if(intercept){
     betavec.hat[1] <- gamma[1]
     for(grp in grps){
-      ix <- which(group == grp) + 1; m <- length(ix)
-      w.hat <- tanh(a0/m*sum(gamma[ix]^2))
+      ix <- which(group == grp) + 1#; m <- length(ix)
+      w.hat <- tanh(a0*sum(gamma[ix]^2))
       betavec.hat[ix] <- gamma[ix]*(w.hat)
     }
   } else{
@@ -223,6 +224,7 @@ glm.gMIC <- function(formula, family = c("gaussian", "binomial", "poisson"), dat
       w.hat <- tanh(a0/m*sum(gamma[ix]^2))
       betavec.hat[ix] <- gamma[ix]*(w.hat)
     }
+    betavec.hat <- gamma*tanh(a0*gamma^2)
   }
 
   # Reverse the scaling and/or orthogonalization

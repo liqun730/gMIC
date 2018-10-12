@@ -76,6 +76,7 @@ bt = c(1,1,1, .5,.5,.5, rep(0,24)); p = length(bt)
 group = c(1,1,1, 2,2,2,rep(3:10,each=3))
 rho1 = 0.1; rho2 = 0.6
 COV = sig(p,rho1) + bdiag(rep(list(sig(3,rho2)),p/3))
+set.seed(1234)
 X = mvrnorm(n,rep(0,p),COV)
 z = X\%*\%bt; pr = 1/(1+exp(-z))
 y = rbinom(n,1,pr)
