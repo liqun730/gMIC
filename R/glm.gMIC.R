@@ -66,7 +66,7 @@ group.pval <- function(formula, data, family, intercept, gamma_hat, group){
 #' @examples
 #' library(MASS)
 #' library(Matrix)
-#' n=300;a=50
+#' n=500;a=100
 #' sig <- function(k, rho){
 #'   m = matrix(rho,nrow=k,ncol=k)
 #'   diag(m) <- 1
@@ -174,32 +174,20 @@ glm.gMIC <- function(formula, family = c("gaussian", "binomial", "poisson"), dat
     else if (length(lower)==1 && p > 1) {lower <- rep(lower, p); upper <- rep(upper, p)}
     else if (length(lower)!= p) stop("Wrong specification for lower= and upper=. Be aware of its appropriate dimension!")
     # NOTE GenSA MINIMIZES, SAME AS optim
-    opt.fit1 <- GenSA(par=beta0, fn=fun, lower = lower, upper = upper,
+    opt.fit <- GenSA(par=beta0, fn=fun, lower = lower, upper = upper,
                       control=list(maxit=maxit.global, nb.stop.improvement=5),
                       group=group, X=X, y=Y, lambda=lambda, a=a0, family = family0)
-    # min.Q <- opt.fit1$value
-    betavec1 <- betavec2 <-  opt.fit1$par;
   } else {
     # OPTIMIZATION USING SIMULATED ANNEALING, FOLLOWED BY BFGS
-    opt.fit1 <- optim(par=beta0, fn=fun, gr = grad,
-                      method = "SANN", control = list(maxit=maxit.global, trace=F, reltol=epsilon),
-                      group=group,X=X, y=Y, lambda=lambda, a=a0, family = family0)
-    betavec1 <- opt.fit1$par; #
-    opt.fit2 <- optim(par=betavec1, fn=fun, gr = grad,
+    opt.fit <- optim(par=beta0, fn=fun, gr = grad,
                       method = "BFGS", control = list(maxit=maxit.local, trace=F, reltol=epsilon),
                       group=group, X=X, y=Y, lambda=lambda, a=a0, family = family0)
-    # betavec20 <- opt.fit2$par
-    # opt.fit3 <- MBFGS(beta0=betavec20, fn=fun, gr=grad,
-    #                    c0=.4, s0=0.5, B0=NULL, nrun.max=100,
-    #                   group=group, X=X, y=Y, lambda=lambda, a=a0, family = family0)
-    # betavec2 <- opt.fit3$beta.min
-    betavec2 <- opt.fit2$par
-    if (details) print(betavec2)
-    # min.Q <- opt.fit2$value
   }
+  betavec <-  opt.fit$par
+  if (details) print(betavec)
 
   # Obtain SE for gamma
-  gamma <- betavec2
+  gamma <- betavec
   pvals <- group.pval(formula, data, family, intercept, gamma, group)
   fit0 <- glm(formula, data = data, family = family,
               start=gamma, control=glm.control(epsilon=1e20, maxit=1, trace=F))
