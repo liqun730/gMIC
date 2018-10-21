@@ -6,10 +6,9 @@
 \usage{
 glm.gMIC(formula, family = c("gaussian", "binomial", "poisson"), data,
   group = NULL, beta0 = NULL, criterion = "BIC", lambda0 = 0,
-  a0 = NULL, scale.x = FALSE, orthogonal.x = FALSE,
-  rounding.digits = 4, use.GenSA = FALSE, lower = NULL,
-  upper = NULL, maxit.global = 100, maxit.local = 100,
-  epsilon = 1e-06, details = FALSE)
+  a0 = NULL, scale.x = FALSE, orthogonal.x = FALSE, rounding.digits = 4,
+  use.GenSA = FALSE, lower = NULL, upper = NULL, maxit.global = 100,
+  maxit.local = 100, epsilon = 1e-06, details = FALSE)
 }
 \arguments{
 \item{formula}{An object of class \code{\link[stats]{formula}}, with the response on the left of a \code{~} operator, and the terms on the right.}
@@ -67,7 +66,7 @@ a simulated anealing or GenSA (depending on the \code{Global.GenSA} argument) is
 \examples{
 library(MASS)
 library(Matrix)
-n=500;a=100
+n=300;a=50
 sig <- function(k, rho){
   m = matrix(rho,nrow=k,ncol=k)
   diag(m) <- 1

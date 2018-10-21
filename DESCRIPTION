@@ -11,6 +11,6 @@ Encoding: UTF-8
 LazyData: true
 LinkingTo: Rcpp,RcppArmadillo
 Imports: Rcpp,RcppArmadillo, GenSA, Matrix, numDeriv
-RoxygenNote: 6.1.0
+RoxygenNote: 6.0.1
 NeedsCompilation: yes
 Packaged: 2018-05-01 18:14:26 UTC; Liqun
