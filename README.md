@@ -7,6 +7,7 @@ R package for the gMIC group variable selection for GLM. After installation, ple
 
 # Installation
 ```library(devtools)```
+
 ```install_github("Liqun730/gMIC")```
 
 # Caution:
