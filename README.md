@@ -6,9 +6,10 @@ R package for the gMIC group variable selection for GLM. After installation, ple
 * Xiaogang Su, Juanjuan Fan, Richard Levine, Martha Nunn and Chih-Ling Tsai (2017), Sparse Estimation of Generalized Linear Models (GLM) via Approximated Information Criteria, _Statistica Sinica_, accepted.
 
 # Installation
-```library(devtools)```
-
-```install_github("Liqun730/gMIC")```
+```
+library(devtools)
+install_github("Liqun730/gMIC")
+```
 
 # Caution:
 The current version cannot be installed on Windows.
