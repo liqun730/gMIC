@@ -6,9 +6,10 @@
 \usage{
 glm.gMIC(formula, family = c("gaussian", "binomial", "poisson"), data,
   group = NULL, beta0 = NULL, criterion = "BIC", lambda0 = 0,
-  a0 = NULL, scale.x = FALSE, orthogonal.x = FALSE, rounding.digits = 4,
-  use.GenSA = FALSE, lower = NULL, upper = NULL, maxit.global = 100,
-  maxit.local = 100, epsilon = 1e-06, details = FALSE)
+  a0 = NULL, scale.x = FALSE, orthogonal.x = FALSE,
+  rounding.digits = 4, optim.method = "BFGS", lower = NULL,
+  upper = NULL, maxit.global = 100, maxit.local = 100,
+  epsilon = 1e-06, stepsize = 0.01, details = FALSE)
 }
 \arguments{
 \item{formula}{An object of class \code{\link[stats]{formula}}, with the response on the left of a \code{~} operator, and the terms on the right.}
@@ -20,14 +21,14 @@ can be called for by \code{\link[stats]{glm.fit}}. See \code{\link[stats]{family
 
 \item{data}{A data.frame in which to interpret the variables named in the \code{formula} argument.}
 
-\item{group}{The group structure of the model. For example, assume that X has 4 columns and group=c(1,1,2,2).
+\item{group}{A vector indicating the group structure of the model. For example, assume that X has 4 columns and group=c(1,1,2,2).
 It means the first 2 features form a group of variables and the last 2 features form another group of variables.}
 
-\item{beta0}{The initial value for the model parameter, default is NULL.}
+\item{beta0}{A vector eqaul to the initial value for the model parameter, default is NULL.}
 
-\item{criterion}{The type of information criterion (AIC or BIC) to approximate. Default is BIC.}
+\item{criterion}{A string indicating the type of information criterion ("AIC" or "BIC") to approximate. Default is "BIC".}
 
-\item{lambda0}{User-supplied penalty parameter for model complexity. If \code{criterion="AIC"} or \code{"BIC"}, the value
+\item{lambda0}{A number, the user-specified penalty parameter for model complexity. If \code{criterion="AIC"} or \code{"BIC"}, the value
 of \code{lambda0} will be ignored.}
 
 \item{a0}{The approximation parameter of the gMIC method.}
@@ -38,7 +39,8 @@ of \code{lambda0} will be ignored.}
 
 \item{rounding.digits}{Number of digits after the decimal point for rounding-up estiamtes. Default value is 4.}
 
-\item{use.GenSA}{Whether to use the GenSA for the optimization, default is FALSE.}
+\item{optim.method}{Optimization method for gMIC, one of c("GD", "BFGS", "GenSA"), indicating we use gradient descent, BFGS or GenSA for gMIC optimmization.
+Default is BFGS. For unknown methods specified by user, the default with be used.}
 
 \item{lower}{The lower bounds for the search space in \code{GenSA}. The default is -10 (\eqn{p} by \eqn{1} vector).}
 
@@ -49,6 +51,8 @@ of \code{lambda0} will be ignored.}
 \item{maxit.local}{Maximum number of iterations allowed for the local optimizaiton algorithm \code{BFGS}. Default value is 100.}
 
 \item{epsilon}{The convergence tolerance.}
+
+\item{stepsize}{The stepsize (or learning rate) for optim.method = "GD".}
 
 \item{details}{Logical value: if \code{TRUE}, detailed results will be printed out when running \code{glm.gMIC}.}
 }
@@ -66,7 +70,7 @@ a simulated anealing or GenSA (depending on the \code{Global.GenSA} argument) is
 \examples{
 library(MASS)
 library(Matrix)
-n=300;a=50
+n=500;a=100
 sig <- function(k, rho){
   m = matrix(rho,nrow=k,ncol=k)
   diag(m) <- 1

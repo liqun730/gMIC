@@ -39,22 +39,24 @@ group.pval <- function(formula, data, family, intercept, gamma_hat, group){
 #' \code{"binomial"}, or \code{"poisson"}.  Otherwise, it has to be a family function or the result of a call to a family function that
 #' can be called for by \code{\link[stats]{glm.fit}}. See \code{\link[stats]{family}} for details of family functions.
 #' @param data A data.frame in which to interpret the variables named in the \code{formula} argument.
-#' @param group The group structure of the model. For example, assume that X has 4 columns and group=c(1,1,2,2).
+#' @param group A vector indicating the group structure of the model. For example, assume that X has 4 columns and group=c(1,1,2,2).
 #' It means the first 2 features form a group of variables and the last 2 features form another group of variables.
-#' @param beta0 The initial value for the model parameter, default is NULL.
-#' @param criterion The type of information criterion (AIC or BIC) to approximate. Default is BIC.
-#' @param lambda0 User-supplied penalty parameter for model complexity. If \code{criterion="AIC"} or \code{"BIC"}, the value
+#' @param beta0 A vector eqaul to the initial value for the model parameter, default is NULL.
+#' @param criterion A string indicating the type of information criterion ("AIC" or "BIC") to approximate. Default is "BIC".
+#' @param lambda0 A number, the user-specified penalty parameter for model complexity. If \code{criterion="AIC"} or \code{"BIC"}, the value
 #' of \code{lambda0} will be ignored.
 #' @param a0 The approximation parameter of the gMIC method.
 #' @param scale.x A boolean indicating whether or not to studentize the features. Default is \code{TRUE}.
 #' @param orthogonal.x A boolean indicating whether or not to orthogonalize the features within each group. Default is true. See \code{link{orthogonalize}} for details.
 #' @param rounding.digits Number of digits after the decimal point for rounding-up estiamtes. Default value is 4.
-#' @param use.GenSA Whether to use the GenSA for the optimization, default is FALSE.
+#' @param optim.method Optimization method for gMIC, one of c("GD", "BFGS", "GenSA"), indicating we use gradient descent, BFGS or GenSA for gMIC optimmization.
+#' Default is BFGS. For unknown methods specified by user, the default with be used.
 #' @param lower The lower bounds for the search space in \code{GenSA}. The default is -10 (\eqn{p} by \eqn{1} vector).
 #' @param upper The upper bounds for the search space in \code{GenSA}. The default is +10 (\eqn{p} by \eqn{1} vector).
 #' @param maxit.global  Maximum number of iterations allowed for the global optimization algorithm \code{SANN}. Default value is 100.
 #' @param maxit.local Maximum number of iterations allowed for the local optimizaiton algorithm \code{BFGS}. Default value is 100.
 #' @param epsilon The convergence tolerance.
+#' @param stepsize The stepsize (or learning rate) for optim.method = "GD".
 #' @param details Logical value: if \code{TRUE}, detailed results will be printed out when running \code{glm.gMIC}.
 #' @return A list of objects as follows,
 #' \describe{
@@ -66,7 +68,7 @@ group.pval <- function(formula, data, family, intercept, gamma_hat, group){
 #' @examples
 #' library(MASS)
 #' library(Matrix)
-#' n=300;a=50
+#' n=500;a=100
 #' sig <- function(k, rho){
 #'   m = matrix(rho,nrow=k,ncol=k)
 #'   diag(m) <- 1
@@ -91,8 +93,9 @@ glm.gMIC <- function(formula, family = c("gaussian", "binomial", "poisson"), dat
                      beta0=NULL, criterion ="BIC", lambda0=0, a0=NULL,
                      scale.x=FALSE, orthogonal.x=FALSE, # Do we orthogonalize X?
                      rounding.digits = 4,				  # Rounding digits for final result
-                     use.GenSA=FALSE, lower=NULL, upper=NULL,
-                     maxit.global=100, maxit.local=100, epsilon=1e-6, details=FALSE
+                     optim.method = "BFGS", lower=NULL, upper=NULL,
+                     maxit.global=100, maxit.local=100, epsilon=1e-6, 
+                     stepsize = 0.01, details=FALSE
                      )
 {
   call <- match.call()
@@ -149,7 +152,12 @@ glm.gMIC <- function(formula, family = c("gaussian", "binomial", "poisson"), dat
   if (criterion =="BIC") {lambda <- log(n); if (details) print(n)}
   else if (criterion =="AIC") lambda <- 2
   else lambda <- lambda0
-
+  
+  # DETERMINE OPTIMIZATION METHODS
+  if(!optim.method %in% c("GenSA","BFGS", "GD")) {
+    warning(paste0("Unknow optimization method: \"", optim.method, "\", BFGS will be used!"))
+    optim.method = "BFGS"
+  }
 
   # OBTAIN MLE AS STARTING VALUE
   if (is.null(beta0)) {
@@ -167,7 +175,7 @@ glm.gMIC <- function(formula, family = c("gaussian", "binomial", "poisson"), dat
   grad <- NULL
 
   # USING GENERALIZED SIMULATED ANNEALING {GenSA} PLUS BFGS
-  if (use.GenSA) {
+  if (optim.method == "GenSA") {
     # require(GenSA)
     # THE LOWER AND UPPER BOUNDS FOR SEARCH SPACE IN OPTIMIZATION
     if (is.null(lower)) {lower=rep(-10, p); upper <- rep(10, p)}
@@ -179,7 +187,7 @@ glm.gMIC <- function(formula, family = c("gaussian", "binomial", "poisson"), dat
                       group=group, X=X, y=Y, lambda=lambda, a=a0, family = family0)
     # min.Q <- opt.fit1$value
     betavec1 <- betavec2 <-  opt.fit1$par;
-  } else {
+  } else if(optim.method == "BFGS") {
     # OPTIMIZATION USING SIMULATED ANNEALING, FOLLOWED BY BFGS
     opt.fit1 <- optim(par=beta0, fn=fun, gr = grad,
                       method = "SANN", control = list(maxit=maxit.global, trace=F, reltol=epsilon),
@@ -196,6 +204,10 @@ glm.gMIC <- function(formula, family = c("gaussian", "binomial", "poisson"), dat
     betavec2 <- opt.fit2$par
     if (details) print(betavec2)
     # min.Q <- opt.fit2$value
+  } else {
+    if(is.function(family)) family.str <- family()$family
+    else family.str <- family$family
+    betavec2 <- gd_gmic(X, y, a0, lambda, beta0, group, family.str, stepsize, epsilon, maxit.global)
   }
 
   # Obtain SE for gamma

@@ -2,7 +2,9 @@
 
 export(LoglikPen)
 export(LoglikPenGLM)
+export(gd_gmic)
 export(glm.gMIC)
+export(grad_gmic)
 export(grp_mic)
 export(orthogonalize)
 import(GenSA)
