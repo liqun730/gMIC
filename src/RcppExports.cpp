@@ -6,16 +6,16 @@
 
 using namespace Rcpp;
 
-// grp_mic
-List grp_mic(arma::vec beta, arma::vec group, double a);
-RcppExport SEXP _gMIC_grp_mic(SEXP betaSEXP, SEXP groupSEXP, SEXP aSEXP) {
+// pen_gmic
+List pen_gmic(arma::vec beta, arma::vec group, double a);
+RcppExport SEXP _gMIC_pen_gmic(SEXP betaSEXP, SEXP groupSEXP, SEXP aSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::vec >::type beta(betaSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type group(groupSEXP);
     Rcpp::traits::input_parameter< double >::type a(aSEXP);
-    rcpp_result_gen = Rcpp::wrap(grp_mic(beta, group, a));
+    rcpp_result_gen = Rcpp::wrap(pen_gmic(beta, group, a));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -81,7 +81,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_gMIC_grp_mic", (DL_FUNC) &_gMIC_grp_mic, 3},
+    {"_gMIC_pen_gmic", (DL_FUNC) &_gMIC_pen_gmic, 3},
     {"_gMIC_grad_gmic", (DL_FUNC) &_gMIC_grad_gmic, 7},
     {"_gMIC_gd_gmic", (DL_FUNC) &_gMIC_gd_gmic, 10},
     {"_gMIC_adam_gmic", (DL_FUNC) &_gMIC_adam_gmic, 13},

@@ -23,7 +23,7 @@ LoglikPenGLM <- function(beta, group, X, y, lambda, a, family = gaussian(link = 
   # THE PANALTY PART
   intercept <- length(beta) != length(group)
   bt <- if(intercept) beta[-1] else beta
-  tmp <- .Call('_gMIC_grp_mic', PACKAGE = 'gMIC', bt, group, a)
+  tmp <- .Call('_gMIC_pen_gmic', PACKAGE = 'gMIC', bt, group, a)
   w <- tmp$w; pen <- lambda*tmp$pen
   beta.prime <- bt*(w)
   if(intercept) beta.prime <- c(beta[1],beta.prime)

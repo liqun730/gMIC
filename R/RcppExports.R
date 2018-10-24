@@ -10,11 +10,11 @@
 #' @return The gMIC penalty evaluated at beta.
 #' @export
 #'
-grp_mic <- function(beta, group, a) {
-    .Call('_gMIC_grp_mic', PACKAGE = 'gMIC', beta, group, a)
+pen_gmic <- function(beta, group, a) {
+    .Call('_gMIC_pen_gmic', PACKAGE = 'gMIC', beta, group, a)
 }
 
-#' The gradient function for gMIC
+#' The Gradient Function for gMIC
 #' 
 #' @param X The design matrix.
 #' @param y The response vector
@@ -30,7 +30,7 @@ grad_gmic <- function(X, y, a, lambda, gamma, group, family) {
     .Call('_gMIC_grad_gmic', PACKAGE = 'gMIC', X, y, a, lambda, gamma, group, family)
 }
 
-#' The gradient descent algorithm for gMIC optimization
+#' The Gradient Descent Algorithm for gMIC Optimization
 #' 
 #' @param X Design matrix.
 #' @param y The response vector.
@@ -49,7 +49,7 @@ gd_gmic <- function(X, y, a, lambda, gamma, group, family, stepsize, tol, maxit)
     .Call('_gMIC_gd_gmic', PACKAGE = 'gMIC', X, y, a, lambda, gamma, group, family, stepsize, tol, maxit)
 }
 
-#' The ADAM algorithm for gMIC optimization (experimental)
+#' The ADAM Algorithm for gMIC Optimization (experimental)
 #' 
 #' @param X Design matrix.
 #' @param y The response vector.

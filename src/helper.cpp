@@ -14,7 +14,7 @@ using namespace arma;
 //' @export
 //'
 // [[Rcpp::export]]
-List grp_mic(arma::vec beta, arma::vec group, double a){
+List pen_gmic(arma::vec beta, arma::vec group, double a){
   arma::vec grps = unique(group);
   int n_group = grps.n_elem, count = 0;
   arma::vec w;
@@ -31,7 +31,7 @@ List grp_mic(arma::vec beta, arma::vec group, double a){
 }
 
 
-//' The gradient function for gMIC
+//' The Gradient Function for gMIC
 //' 
 //' @param X The design matrix.
 //' @param y The response vector
@@ -81,7 +81,7 @@ arma::vec grad_gmic(arma::mat X, arma::vec y, double a, double lambda, arma::vec
 
 
 
-//' The gradient descent algorithm for gMIC optimization
+//' The Gradient Descent Algorithm for gMIC Optimization
 //' 
 //' @param X Design matrix.
 //' @param y The response vector.
@@ -117,7 +117,7 @@ arma::vec gd_gmic(arma::mat X, arma::vec y, double a, double lambda, arma::vec g
 
 
 
-//' The ADAM algorithm for gMIC optimization (experimental)
+//' The ADAM Algorithm for gMIC Optimization (experimental)
 //' 
 //' @param X Design matrix.
 //' @param y The response vector.
