@@ -14,7 +14,7 @@ using namespace arma;
 //' @export
 //'
 // [[Rcpp::export]]
-List grp_mic(arma::vec beta, arma::vec group, double a){
+List pen_gmic(arma::vec beta, arma::vec group, double a){
   arma::vec grps = unique(group);
   int n_group = grps.n_elem, count = 0;
   arma::vec w;
@@ -31,7 +31,7 @@ List grp_mic(arma::vec beta, arma::vec group, double a){
 }
 
 
-//' The gradient function for gMIC
+//' The Gradient Function for gMIC
 //' 
 //' @param X The design matrix.
 //' @param y The response vector
@@ -81,7 +81,7 @@ arma::vec grad_gmic(arma::mat X, arma::vec y, double a, double lambda, arma::vec
 
 
 
-//' The gradient descent function for gMIC optimization
+//' The Gradient Descent Algorithm for gMIC Optimization
 //' 
 //' @param X Design matrix.
 //' @param y The response vector.
@@ -97,15 +97,63 @@ arma::vec grad_gmic(arma::mat X, arma::vec y, double a, double lambda, arma::vec
 //' @export
 //'
 // [[Rcpp::export]]
-arma::vec gd_gmic(arma::mat X, arma::vec y, double a, double lambda, arma::vec gamma, arma::vec group, String family, double stepsize, double tol, int maxit) {
+arma::vec gd_gmic(arma::mat X, arma::vec y, double a, double lambda, arma::vec gamma, arma::vec group, String family, 
+                  double stepsize, double tol, int maxit) {
 
   int k = 0;
+  // double thresh = 1.0e-5;
   while(k < maxit) {
     arma::vec gamma0 = gamma;
     arma::vec grad = grad_gmic(X, y, a, lambda, gamma, group, family);
     gamma -= stepsize * grad;
+    // arma::uvec ix = find(gamma < thresh && gamma > -thresh);
+    // gamma.elem(ix).fill(0.0);
     if(sqrt(accu(square(gamma - gamma0))) < tol) k = maxit;
     else k += 1;
+  }
+  
+  return gamma;
+}
+
+
+
+//' The ADAM Algorithm for gMIC Optimization (experimental)
+//' 
+//' @param X Design matrix.
+//' @param y The response vector.
+//' @param a The approximation parameter for gMIC.
+//' @param lambda The penalization parameter for gMIC, e.g., 2 for AIC and long(n) for BIC.
+//' @param gamma The optimization parameter gamma.
+//' @param group The group structure of the model. For example, assume that X has 4 columns and group=c(1,1,2,2).
+//' It means the first 2 features form a group of variables and the last 2 features form another group of variables.
+//' @param family The type of glm model, should be one of "gaussian", "binomial" or "poisson".
+//' @param stepsize Stepsize for group coordinate descent.
+//' @param tol Convergence tolerance.
+//' @param maxit Maximum number of iterations.
+//' @param b1 ADAM hyperparameter, default set to 0.9.
+//' @param b2 ADAM hyperparameter, default set to 0.999.
+//' @param e ADAM hyperparameter, default set to 1e-8.
+//' @export
+//'
+// [[Rcpp::export]]
+arma::vec adam_gmic(arma::mat X, arma::vec y, double a, double lambda, arma::vec gamma, arma::vec group, String family,
+                    double stepsize, double tol, int maxit, double b1 = 0.7, double b2 = 0.9, double e = 1.0e-8) {
+  
+  // initialization for ADAM:
+  arma::vec mt = arma::zeros(gamma.n_elem), vt = arma::zeros(gamma.n_elem);
+  // double thresh = 1.0e-5;
+  
+  int t = 0;
+  while(t < maxit) {
+    arma::vec gamma0 = gamma;
+    arma::vec grad = grad_gmic(X, y, a, lambda, gamma, group, family);
+    mt = (b1 * mt + (1 - b1) * grad) / (1 - std::pow(b1, t+1));
+    vt = (b2 * vt + (1 - b2) * grad % grad) / (1 - std::pow(b2, t+1));
+    gamma -= stepsize * mt / (arma::sqrt(vt) + e);
+    // arma::uvec ix = find(gamma < thresh && gamma > -thresh);
+    // gamma.elem(ix).fill(0.0);
+    if(sqrt(accu(square(gamma - gamma0))) < tol) t = maxit;
+    else t += 1;
   }
   
   return gamma;

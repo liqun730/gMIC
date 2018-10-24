@@ -2,11 +2,12 @@
 
 export(LoglikPen)
 export(LoglikPenGLM)
+export(adam_gmic)
 export(gd_gmic)
 export(glm.gMIC)
 export(grad_gmic)
-export(grp_mic)
 export(orthogonalize)
+export(pen_gmic)
 import(GenSA)
 import(Matrix)
 importFrom(Rcpp,sourceCpp)

@@ -49,7 +49,8 @@ group.pval <- function(formula, data, family, intercept, gamma_hat, group){
 #' @param scale.x A boolean indicating whether or not to studentize the features. Default is \code{TRUE}.
 #' @param orthogonal.x A boolean indicating whether or not to orthogonalize the features within each group. Default is true. See \code{link{orthogonalize}} for details.
 #' @param rounding.digits Number of digits after the decimal point for rounding-up estiamtes. Default value is 4.
-#' @param optim.method Optimization method for gMIC, one of c("GD", "BFGS", "GenSA"), indicating we use gradient descent, BFGS or GenSA for gMIC optimmization.
+#' @param optim.method Optimization method for gMIC, one of c("GenSA", "BFGS", "GD", "ADAM"), indicating we use GenSA, BFGS, gradient descent, 
+#' or ADAM for gMIC optimmization. ADAM is currently only experimental.
 #' Default is BFGS. For unknown methods specified by user, the default with be used.
 #' @param lower The lower bounds for the search space in \code{GenSA}. The default is -10 (\eqn{p} by \eqn{1} vector).
 #' @param upper The upper bounds for the search space in \code{GenSA}. The default is +10 (\eqn{p} by \eqn{1} vector).
@@ -154,7 +155,7 @@ glm.gMIC <- function(formula, family = c("gaussian", "binomial", "poisson"), dat
   else lambda <- lambda0
   
   # DETERMINE OPTIMIZATION METHODS
-  if(!optim.method %in% c("GenSA","BFGS", "GD")) {
+  if(!optim.method %in% c("GenSA","BFGS", "GD", "ADAM")) {
     warning(paste0("Unknow optimization method: \"", optim.method, "\", BFGS will be used!"))
     optim.method = "BFGS"
   }
@@ -204,10 +205,12 @@ glm.gMIC <- function(formula, family = c("gaussian", "binomial", "poisson"), dat
     betavec2 <- opt.fit2$par
     if (details) print(betavec2)
     # min.Q <- opt.fit2$value
-  } else {
-    if(is.function(family)) family.str <- family()$family
-    else family.str <- family$family
-    betavec2 <- gd_gmic(X, y, a0, lambda, beta0, group, family.str, stepsize, epsilon, maxit.global)
+  } else{
+    family.str <- ifelse(is.function(family), family()$family, family$family)
+    if(optim.method == "GD")
+      betavec2 <- as.vector(gd_gmic(X, y, a0, lambda, beta0, group, family.str, stepsize, epsilon, maxit.global))
+    else
+      betavec2 <- as.vector(adam_gmic(X, y, a0, lambda, beta0, group, family.str, stepsize, epsilon, maxit.global))
   }
 
   # Obtain SE for gamma
