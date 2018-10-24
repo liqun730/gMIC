@@ -30,7 +30,7 @@ grad_gmic <- function(X, y, a, lambda, gamma, group, family) {
     .Call('_gMIC_grad_gmic', PACKAGE = 'gMIC', X, y, a, lambda, gamma, group, family)
 }
 
-#' The gradient descent function for gMIC optimization
+#' The gradient descent algorithm for gMIC optimization
 #' 
 #' @param X Design matrix.
 #' @param y The response vector.
@@ -47,5 +47,27 @@ grad_gmic <- function(X, y, a, lambda, gamma, group, family) {
 #'
 gd_gmic <- function(X, y, a, lambda, gamma, group, family, stepsize, tol, maxit) {
     .Call('_gMIC_gd_gmic', PACKAGE = 'gMIC', X, y, a, lambda, gamma, group, family, stepsize, tol, maxit)
+}
+
+#' The ADAM algorithm for gMIC optimization (experimental)
+#' 
+#' @param X Design matrix.
+#' @param y The response vector.
+#' @param a The approximation parameter for gMIC.
+#' @param lambda The penalization parameter for gMIC, e.g., 2 for AIC and long(n) for BIC.
+#' @param gamma The optimization parameter gamma.
+#' @param group The group structure of the model. For example, assume that X has 4 columns and group=c(1,1,2,2).
+#' It means the first 2 features form a group of variables and the last 2 features form another group of variables.
+#' @param family The type of glm model, should be one of "gaussian", "binomial" or "poisson".
+#' @param stepsize Stepsize for group coordinate descent.
+#' @param tol Convergence tolerance.
+#' @param maxit Maximum number of iterations.
+#' @param b1 ADAM hyperparameter, default set to 0.9.
+#' @param b2 ADAM hyperparameter, default set to 0.999.
+#' @param e ADAM hyperparameter, default set to 1e-8.
+#' @export
+#'
+adam_gmic <- function(X, y, a, lambda, gamma, group, family, stepsize, tol, maxit, b1 = 0.7, b2 = 0.9, e = 1.0e-8) {
+    .Call('_gMIC_adam_gmic', PACKAGE = 'gMIC', X, y, a, lambda, gamma, group, family, stepsize, tol, maxit, b1, b2, e)
 }
 
