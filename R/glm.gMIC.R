@@ -30,9 +30,6 @@ group.pval <- function(formula, data, family, intercept, gamma_hat, group){
 
 #' The gMIC Function for (Group) Variable Selection in Generalized Linear Model
 #'
-#' Since the gMIC penality is non-convex, multiple solutions may exist. We use multiple starting points for the optimization. For each optimization,
-#' a simulated anealing or GenSA (depending on the \code{Global.GenSA} argument) is applied and maybe followed by the BFGS (if \code{BFGS=TRUE}).
-#'
 #' @param formula An object of class \code{\link[stats]{formula}}, with the response on the left of a \code{~} operator, and the terms on the right.
 #' @param family A description of the error distribution and link function to be used in the model. Preferably for computational speed,
 #' this is a character string naming a family function among the following three choices: \code{"gaussian"},
@@ -50,14 +47,14 @@ group.pval <- function(formula, data, family, intercept, gamma_hat, group){
 #' @param orthogonal.x A boolean indicating whether or not to orthogonalize the features within each group. Default is true. See \code{link{orthogonalize}} for details.
 #' @param rounding.digits Number of digits after the decimal point for rounding-up estiamtes. Default value is 4.
 #' @param optim.method Optimization method for gMIC, one of c("GenSA", "BFGS", "GD", "ADAM"), indicating we use GenSA, BFGS, gradient descent, 
-#' or ADAM for gMIC optimmization. ADAM is currently only experimental.
+#' or ADAM for gMIC optimmization.
 #' Default is BFGS. For unknown methods specified by user, the default with be used.
 #' @param lower The lower bounds for the search space in \code{GenSA}. The default is -10 (\eqn{p} by \eqn{1} vector).
 #' @param upper The upper bounds for the search space in \code{GenSA}. The default is +10 (\eqn{p} by \eqn{1} vector).
 #' @param maxit.global  Maximum number of iterations allowed for the global optimization algorithm \code{SANN}. Default value is 100.
 #' @param maxit.local Maximum number of iterations allowed for the local optimizaiton algorithm \code{BFGS}. Default value is 100.
 #' @param epsilon The convergence tolerance.
-#' @param stepsize The stepsize (or learning rate) for optim.method = "GD".
+#' @param stepsize The stepsize (or learning rate) for optim.method = "GD" and "ADAM".
 #' @param details Logical value: if \code{TRUE}, detailed results will be printed out when running \code{glm.gMIC}.
 #' @return A list of objects as follows,
 #' \describe{
@@ -156,7 +153,7 @@ glm.gMIC <- function(formula, family = c("gaussian", "binomial", "poisson"), dat
   
   # DETERMINE OPTIMIZATION METHODS
   if(!optim.method %in% c("GenSA","BFGS", "GD", "ADAM")) {
-    warning(paste0("Unknow optimization method: \"", optim.method, "\", BFGS will be used!"))
+    warning(paste0("Unknow optimization method: \"", optim.method, "\", \"BFGS\" will be used!"))
     optim.method = "BFGS"
   }
 

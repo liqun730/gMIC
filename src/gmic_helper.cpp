@@ -41,9 +41,6 @@ List pen_gmic(arma::vec beta, arma::vec group, double a){
 //' @param group The group structure of the model. For example, assume that X has 4 columns and group=c(1,1,2,2).
 //' It means the first 2 features form a group of variables and the last 2 features form another group of variables.
 //' @param family The type of glm model, should be one of "gaussian", "binomial" or "poisson".
-//' @export
-//'
-// [[Rcpp::export]]
 arma::vec grad_gmic(arma::mat X, arma::vec y, double a, double lambda, arma::vec gamma, arma::vec group, String family) {
   
   bool intercept = gamma.n_elem != group.n_elem;
@@ -52,7 +49,7 @@ arma::vec grad_gmic(arma::mat X, arma::vec y, double a, double lambda, arma::vec
   arma::sp_mat M(gamma.n_elem, gamma.n_elem);
   
   // Construct w and M
-  if(intercept) { w.insert_rows(0, 1); M(0, 0) = 1; start += 1; }
+  if(intercept) { w.insert_rows(0, arma::ones(1)); M(0, 0) = 1; start += 1; }
   for (int g = 0; g < n_group; g++) {
     arma::uvec ix = (intercept)? arma::uvec(find(group == grps(g)) + 1) : find(group == grps(g));
     arma::vec gamma_g = gamma(ix);
@@ -130,9 +127,9 @@ arma::vec gd_gmic(arma::mat X, arma::vec y, double a, double lambda, arma::vec g
 //' @param stepsize Stepsize for group coordinate descent.
 //' @param tol Convergence tolerance.
 //' @param maxit Maximum number of iterations.
-//' @param b1 ADAM hyperparameter, default set to 0.9.
-//' @param b2 ADAM hyperparameter, default set to 0.999.
-//' @param e ADAM hyperparameter, default set to 1e-8.
+//' @param b1 ADAM hyperparameter, default is 0.9.
+//' @param b2 ADAM hyperparameter, default is 0.999.
+//' @param e ADAM hyperparameter, default is to 1e-8.
 //' @export
 //'
 // [[Rcpp::export]]
