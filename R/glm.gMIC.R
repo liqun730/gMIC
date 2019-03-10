@@ -86,7 +86,7 @@ group.pval <- function(formula, data, family, intercept, gamma_hat, group){
 #'
 #' @export
 #'
-glm.gMIC <- function(formula, family = c("gaussian", "binomial", "poisson"), data, group=NULL,
+glm.gMIC <- function(formula, family, data, group=NULL,
                      beta0=NULL, criterion ="BIC", lambda0=0, a0=NULL,
                      scale.x=FALSE, orthogonal.x=FALSE, # Do we orthogonalize X?
                      rounding.digits = 4,				  # Rounding digits for final result
@@ -97,9 +97,12 @@ glm.gMIC <- function(formula, family = c("gaussian", "binomial", "poisson"), dat
   call <- match.call()
   # CHECK THE family= ARGUMENT
   family0 <- family
-  if (is.character(family)) family <- get(family, mode = "function", envir = parent.frame())
-  if (is.function(family)) family <- family()
-  if (is.null(family$family)) {print(family); stop("'family0' not recognized")}
+  if (is.character(family)) 
+    family <- get(family, mode = "function", envir = parent.frame())
+  if (is.function(family)) 
+    family <- family()
+  if (!is.element(family$family, c("gaussian", "binomial", "poisson"))) 
+    stop(paste0("Family '", family$family, "' not supported!"))
 
   # CHECK THE data= ARGUMENT
   if (missing(data)) data <- environment(formula)
@@ -163,7 +166,12 @@ glm.gMIC <- function(formula, family = c("gaussian", "binomial", "poisson"), dat
   p <- length(beta0)
 
   # THE OBJECTIVE FUNCTION
-  fun <- ifelse(is.element(family0, c("gaussian", "binomial", "poisson")), LoglikPen, LoglikPenGLM)
+  if(is.character(family0)) {
+    fun <- LoglikPen
+  } else {
+    fun <- LoglikPenGLM
+    family0 <- family
+  }
 
   # GRADIENT
   grad <- NULL
@@ -190,8 +198,7 @@ glm.gMIC <- function(formula, family = c("gaussian", "binomial", "poisson"), dat
     # min.Q <- opt.fit1$value
     gamma <-  opt.fit$par
   } else{
-    family.str <- ifelse(is.function(family), family()$family, family$family)
-    gamma <- as.vector(adam_gmic(X, Y, a0, lambda, beta0, group, family.str, stepsize, epsilon, maxit.global))
+    gamma <- as.vector(adam_gmic(X, Y, a0, lambda, beta0, group, family$family, stepsize, epsilon, maxit.global))
   }
   if (details) {
     print("Fitted Gamma:")
