@@ -46,8 +46,7 @@ group.pval <- function(formula, data, family, intercept, gamma_hat, group){
 #' @param scale.x A boolean indicating whether or not to studentize the features. Default is \code{TRUE}.
 #' @param orthogonal.x A boolean indicating whether or not to orthogonalize the features within each group. Default is true. See \code{link{orthogonalize}} for details.
 #' @param rounding.digits Number of digits after the decimal point for rounding-up estiamtes. Default value is 4.
-#' @param optim.method Optimization method for gMIC, one of c("GenSA", "BFGS", "GD", "ADAM"), indicating we use GenSA, BFGS, gradient descent, 
-#' or ADAM for gMIC optimmization.
+#' @param optim.method Optimization method for gMIC, one of c("GenSA", "BFGS", "ADAM"), indicating we use GenSA, BFGS, or ADAM for gMIC optimmization.
 #' Default is BFGS. For unknown methods specified by user, the default with be used.
 #' @param lower The lower bounds for the search space in \code{GenSA}. The default is -10 (\eqn{p} by \eqn{1} vector).
 #' @param upper The upper bounds for the search space in \code{GenSA}. The default is +10 (\eqn{p} by \eqn{1} vector).
@@ -93,8 +92,7 @@ glm.gMIC <- function(formula, family = c("gaussian", "binomial", "poisson"), dat
                      rounding.digits = 4,				  # Rounding digits for final result
                      optim.method = "BFGS", lower=NULL, upper=NULL,
                      maxit.global=100, maxit.local=100, epsilon=1e-6, 
-                     stepsize = 0.01, details=FALSE
-                     )
+                     stepsize = 0.01, details=FALSE)
 {
   call <- match.call()
   # CHECK THE family= ARGUMENT
@@ -121,10 +119,8 @@ glm.gMIC <- function(formula, family = c("gaussian", "binomial", "poisson"), dat
   yname <- as.character(formula[[2]]); # EXTRACT RESPONSE NAME FROM THE FORMULA
   X <- if (!is.empty.model(mt)) model.matrix(mt, mf)
   else matrix(, NROW(Y), 0L)
+  
   Xnames <- colnames(X)
-  if (details) print(X[1:10, ])  ################
-
-  #
   intercept <- Xnames[1]=="(Intercept)"
   if(is.null(group)) {
     if(intercept) group <- (1:(ncol(X)-1))
@@ -147,12 +143,10 @@ glm.gMIC <- function(formula, family = c("gaussian", "binomial", "poisson"), dat
   # DETERMINE lambda
   n <- NROW(Y);
   if (is.null(a0)) a0 <- min(n, 100)
-  if (criterion =="BIC") {lambda <- log(n); if (details) print(n)}
-  else if (criterion =="AIC") lambda <- 2
-  else lambda <- lambda0
+  lambda <- if (criterion =="BIC") log(n) else if (criterion =="AIC") 2 else lambda0
   
   # DETERMINE OPTIMIZATION METHODS
-  if(!optim.method %in% c("GenSA","BFGS", "GD", "ADAM")) {
+  if(!optim.method %in% c("BFGS", "GenSA", "ADAM")) {
     warning(paste0("Unknow optimization method: \"", optim.method, "\", \"BFGS\" will be used!"))
     optim.method = "BFGS"
   }
@@ -161,57 +155,79 @@ glm.gMIC <- function(formula, family = c("gaussian", "binomial", "poisson"), dat
   if (is.null(beta0)) {
     fit <- eval(call("glm.fit", x =X, y = Y, family = family))
     beta0 <- fit$coef
-    if (details) print(beta0)
+    if (details) {
+      print("Initial beta:")
+      print(beta0)
+    }
   }
   p <- length(beta0)
 
   # THE OBJECTIVE FUNCTION
-  if (is.element(family0, c("gaussian", "binomial", "poisson"))) fun <- LoglikPen
-  else fun <- LoglikPenGLM;
-  #
+  fun <- ifelse(is.element(family0, c("gaussian", "binomial", "poisson")), LoglikPen, LoglikPenGLM)
+
   # GRADIENT
   grad <- NULL
 
   # USING GENERALIZED SIMULATED ANNEALING {GenSA} PLUS BFGS
-  if (optim.method == "GenSA") {
-    # require(GenSA)
-    # THE LOWER AND UPPER BOUNDS FOR SEARCH SPACE IN OPTIMIZATION
-    if (is.null(lower)) {lower=rep(-10, p); upper <- rep(10, p)}
-    else if (length(lower)==1 && p > 1) {lower <- rep(lower, p); upper <- rep(upper, p)}
-    else if (length(lower)!= p) stop("Wrong specification for lower= and upper=. Be aware of its appropriate dimension!")
-    # NOTE GenSA MINIMIZES, SAME AS optim
-    opt.fit1 <- GenSA(par=beta0, fn=fun, lower = lower, upper = upper,
-                      control=list(maxit=maxit.global, nb.stop.improvement=5),
-                      group=group, X=X, y=Y, lambda=lambda, a=a0, family = family0)
-    # min.Q <- opt.fit1$value
-    betavec1 <- betavec2 <-  opt.fit1$par;
-  } else if(optim.method == "BFGS") {
+  if (optim.method == "BFGS") {
     # OPTIMIZATION USING SIMULATED ANNEALING, FOLLOWED BY BFGS
     opt.fit1 <- optim(par=beta0, fn=fun, gr = grad,
                       method = "SANN", control = list(maxit=maxit.global, trace=F, reltol=epsilon),
                       group=group,X=X, y=Y, lambda=lambda, a=a0, family = family0)
-    betavec1 <- opt.fit1$par; #
-    opt.fit2 <- optim(par=betavec1, fn=fun, gr = grad,
+    opt.fit2 <- optim(par=opt.fit1$par, fn=fun, gr = grad,
                       method = "BFGS", control = list(maxit=maxit.local, trace=F, reltol=epsilon),
                       group=group, X=X, y=Y, lambda=lambda, a=a0, family = family0)
-    # betavec20 <- opt.fit2$par
-    # opt.fit3 <- MBFGS(beta0=betavec20, fn=fun, gr=grad,
-    #                    c0=.4, s0=0.5, B0=NULL, nrun.max=100,
-    #                   group=group, X=X, y=Y, lambda=lambda, a=a0, family = family0)
-    # betavec2 <- opt.fit3$beta.min
-    betavec2 <- opt.fit2$par
-    if (details) print(betavec2)
+    gamma <- opt.fit2$par
     # min.Q <- opt.fit2$value
+  } else if(optim.method == "GenSA") {
+    # THE LOWER AND UPPER BOUNDS FOR SEARCH SPACE IN OPTIMIZATION
+    if (is.null(lower)) {lower=rep(-10, p); upper <- rep(10, p)}
+    else if (length(lower)==1 && p > 1) {lower <- rep(lower, p); upper <- rep(upper, p)}
+    else if (length(lower)!= p) stop("Wrong specification for lower= and upper=. Be aware of its appropriate dimension!")
+    opt.fit <- GenSA::GenSA(par=beta0, fn=fun, lower = lower, upper = upper,
+                      control=list(maxit=maxit.global, nb.stop.improvement=5),
+                      group=group, X=X, y=Y, lambda=lambda, a=a0, family = family0)
+    # min.Q <- opt.fit1$value
+    gamma <-  opt.fit$par
   } else{
     family.str <- ifelse(is.function(family), family()$family, family$family)
-    if(optim.method == "GD")
-      betavec2 <- as.vector(gd_gmic(X, y, a0, lambda, beta0, group, family.str, stepsize, epsilon, maxit.global))
-    else
-      betavec2 <- as.vector(adam_gmic(X, y, a0, lambda, beta0, group, family.str, stepsize, epsilon, maxit.global))
+    gamma <- as.vector(adam_gmic(X, Y, a0, lambda, beta0, group, family.str, stepsize, epsilon, maxit.global))
+  }
+  if (details) {
+    print("Fitted Gamma:")
+    print(gamma)
+  }
+  # Reverse the scaling and/or orthogonalization
+  if(scale.x || orthogonal.x){
+    if (intercept) {
+      if(orthogonal.x) {
+        gamma[-1] <- unorthogonalize(gamma[-1],X1)
+      }
+      if(scale.x) {
+        gamma[-1] <- gamma[-1]/sc
+        gamma[1] <- gamma[1] - sum(gamma[-1]*adj)
+      }
+    }
+    else{
+      if(orthogonal.x)  {
+        gamma <- unorthogonalize(gamma, X)
+      }
+      if(scale.x) {
+        gamma <- gamma/sc
+      }
+    }
+  }
+
+  # Prepare the variable selection result
+  beta.hat <- rep(0, length(gamma))
+  grps <- unique(group)
+  for(grp in grps) {
+    ix <- if(intercept) which(group == grp) + 1 else which(group == grp)
+    m = length(ix)
+    beta.hat[ix] <- gamma[ix] * tanh(a0 / m *sum(gamma[ix]^2))
   }
 
   # Obtain SE for gamma
-  gamma <- betavec2
   pvals <- group.pval(formula, data, family, intercept, gamma, group)
   fit0 <- glm(formula, data = data, family = family,
               start=gamma, control=glm.control(epsilon=1e20, maxit=1, trace=F))
@@ -220,43 +236,9 @@ glm.gMIC <- function(formula, family = c("gaussian", "binomial", "poisson"), dat
   z.gamma <- gamma/se.gamma
   pvalue.gamma <- 2*pnorm(abs(z.gamma), lower.tail=F)
 
-  # Prepare the variable selection result
-  betavec.hat <- rep(0, length(gamma))
-  grps <- unique(group)
-  if(intercept){
-    betavec.hat[1] <- gamma[1]
-    for(grp in grps){
-      ix <- which(group == grp) + 1#; m <- length(ix)
-      w.hat <- tanh(a0*sum(gamma[ix]^2))
-      betavec.hat[ix] <- gamma[ix]*(w.hat)
-    }
-  } else{
-    for(grp in grps){
-      ix <- which(group == grp); m <- length(ix)
-      w.hat <- tanh(a0/m*sum(gamma[ix]^2))
-      betavec.hat[ix] <- gamma[ix]*(w.hat)
-    }
-    betavec.hat <- gamma*tanh(a0*gamma^2)
-  }
-
-  # Reverse the scaling and/or orthogonalization
-  if(scale.x || orthogonal.x){
-    if (intercept) {
-      if(orthogonal.x) betavec.hat[-1] <- unorthogonalize(betavec.hat[-1],X1)
-      if(scale.x) {
-        betavec.hat[-1] <- betavec.hat[-1]/sc
-        betavec.hat[1] <- betavec.hat[1]-sum(betavec.hat[-1]*adj)
-      }
-    }
-    else{
-      if(orthogonal.x)  betavec.hat <- unorthogonalize(betavec.hat,X)
-      if(scale.x) betavec.hat <- betavec.hat/sc
-    }
-  }
-
-  betavec.hat <- round(betavec.hat, rounding.digits)  # Rounding
+  beta.hat <- round(beta.hat, rounding.digits)  # Rounding
 
   ##
-  result <- cbind(gamma=gamma,se.gamma=se.gamma,pvalue.gamma=pvalue.gamma,beta=betavec.hat)
+  result <- cbind(gamma=gamma,se.gamma=se.gamma,pvalue.gamma=pvalue.gamma,beta=beta.hat)
   list(coefficients=data.frame(result), group.pvalues=pvals)
 }

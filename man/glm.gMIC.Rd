@@ -39,8 +39,7 @@ of \code{lambda0} will be ignored.}
 
 \item{rounding.digits}{Number of digits after the decimal point for rounding-up estiamtes. Default value is 4.}
 
-\item{optim.method}{Optimization method for gMIC, one of c("GenSA", "BFGS", "GD", "ADAM"), indicating we use GenSA, BFGS, gradient descent, 
-or ADAM for gMIC optimmization.
+\item{optim.method}{Optimization method for gMIC, one of c("GenSA", "BFGS", "ADAM"), indicating we use GenSA, BFGS, or ADAM for gMIC optimmization.
 Default is BFGS. For unknown methods specified by user, the default with be used.}
 
 \item{lower}{The lower bounds for the search space in \code{GenSA}. The default is -10 (\eqn{p} by \eqn{1} vector).}
