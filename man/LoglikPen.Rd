@@ -4,11 +4,9 @@
 \alias{LoglikPen}
 \title{Compute the penalized log likelihood for GLM with MIC penalty (Self-Written)}
 \usage{
-LoglikPen(beta, group, X, y, lambda, a, family = "gaussian")
+LoglikPen(gamma, group, X, y, lambda, a, family = "gaussian")
 }
 \arguments{
-\item{beta}{A p-dimensional vector containing the regression ceofficients.}
-
 \item{group}{The group structure of the model. For example, assume that X has 4 columns and group=c(1,1,2,2).
 It means the first 2 features form a group of variables and the last 2 features form another group of variables.}
 
@@ -22,6 +20,8 @@ It can be specified as any value of the user's own choice.}
 \item{a}{The scale parameter in the hyperbolic tangent function of the MIC penalty. By default, \eqn{a = 50}.}
 
 \item{family}{a description of the error distribution. To use this function, \code{family} needs to be one of \code{"gaussian"},}
+
+\item{beta}{A p-dimensional vector containing the regression ceofficients.}
 }
 \value{
 The value of the penalized log likelihood function evaluated at beta.

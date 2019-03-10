@@ -18,18 +18,18 @@
 #' @export
 #'
 
-LoglikPenGLM <- function(beta, group, X, y, lambda, a, family = gaussian(link = "identity"))
+LoglikPenGLM <- function(gamma, group, X, y, lambda, a, family = gaussian(link = "identity"))
 {
   # THE PANALTY PART
-  intercept <- length(beta) != length(group)
-  bt <- if(intercept) beta[-1] else beta
-  tmp <- .Call('_gMIC_pen_gmic', PACKAGE = 'gMIC', bt, group, a)
+  intercept <- length(gamma) != length(group)
+  gma <- if(intercept) gamma[-1] else gamma
+  tmp <- .Call('_gMIC_pen_gmic', PACKAGE = 'gMIC', gma, group, a)
   w <- tmp$w; pen <- lambda*tmp$pen
-  beta.prime <- bt*(w)
-  if(intercept) beta.prime <- c(beta[1],beta.prime)
+  beta <- gma * w
+  if(intercept) beta <- c(gamma[1],beta)
 
   # THE LOGLIKELIHOOD PART OBTAINED FROM R FUNCTION glm()
-  eta <- X%*%beta.prime; n <- NROW(X);
+  eta <- X%*%beta; n <- NROW(X)
   fit <- eval(call("glm.fit", x = matrix(, n, 0L), y = y, offset = eta,
                    family = family,
                    control = glm.control(epsilon = 1e+8, maxit = 0.5, trace = T),

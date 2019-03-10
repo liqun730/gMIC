@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{grad_gmic}
 \alias{grad_gmic}
-\title{The Gradient Function for gMIC}
+\title{Gradient Function for gMIC}
 \usage{
 grad_gmic(X, y, a, lambda, gamma, group, family)
 }
@@ -23,5 +23,5 @@ It means the first 2 features form a group of variables and the last 2 features 
 \item{family}{The type of glm model, should be one of "gaussian", "binomial" or "poisson".}
 }
 \description{
-The Gradient Function for gMIC
+Gradient Function for gMIC
 }

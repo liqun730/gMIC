@@ -19,19 +19,19 @@
 #' @export
 
 
-LoglikPen <- function(beta, group, X, y, lambda, a, family = "gaussian")
+LoglikPen <- function(gamma, group, X, y, lambda, a, family = "gaussian")
 {
 
   # THE PANALTY PART
-  intercept <- length(beta) != length(group)
-  bt <- if(intercept) beta[-1] else beta
-  tmp <- .Call('_gMIC_pen_gmic', PACKAGE = 'gMIC', bt, group, a)
+  intercept <- length(gamma) != length(group)
+  gma <- if(intercept) gamma[-1] else gamma
+  tmp <- .Call('_gMIC_pen_gmic', PACKAGE = 'gMIC', gma, group, a)
   w <- tmp$w; pen <- lambda*tmp$pen
-  beta.prime <- bt*(w)
-  if(intercept) beta.prime <- c(beta[1],beta.prime)
+  beta <- gma * w
+  if(intercept) beta <- c(gamma[1],beta)
 
   # THE (-2)*LOGLIKELIHOOD PART
-  eta <- X%*%beta.prime
+  eta <- X%*%beta
   if (family=="gaussian")
     loglik <- NROW(X)* log(sum((y - eta)^2))
   else if (family=="binomial")

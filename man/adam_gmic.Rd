@@ -29,11 +29,11 @@ It means the first 2 features form a group of variables and the last 2 features 
 
 \item{maxit}{Maximum number of iterations.}
 
-\item{b1}{ADAM hyperparameter, default set to 0.9.}
+\item{b1}{ADAM hyperparameter, default is 0.9.}
 
-\item{b2}{ADAM hyperparameter, default set to 0.999.}
+\item{b2}{ADAM hyperparameter, default is 0.999.}
 
-\item{e}{ADAM hyperparameter, default set to 1e-8.}
+\item{e}{ADAM hyperparameter, default is to 1e-8.}
 }
 \description{
 The ADAM Algorithm for gMIC Optimization (experimental)

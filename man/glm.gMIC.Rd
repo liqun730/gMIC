@@ -39,8 +39,7 @@ of \code{lambda0} will be ignored.}
 
 \item{rounding.digits}{Number of digits after the decimal point for rounding-up estiamtes. Default value is 4.}
 
-\item{optim.method}{Optimization method for gMIC, one of c("GenSA", "BFGS", "GD", "ADAM"), indicating we use GenSA, BFGS, gradient descent, 
-or ADAM for gMIC optimmization. ADAM is currently only experimental.
+\item{optim.method}{Optimization method for gMIC, one of c("GenSA", "BFGS", "ADAM"), indicating we use GenSA, BFGS, or ADAM for gMIC optimmization.
 Default is BFGS. For unknown methods specified by user, the default with be used.}
 
 \item{lower}{The lower bounds for the search space in \code{GenSA}. The default is -10 (\eqn{p} by \eqn{1} vector).}
@@ -53,7 +52,7 @@ Default is BFGS. For unknown methods specified by user, the default with be used
 
 \item{epsilon}{The convergence tolerance.}
 
-\item{stepsize}{The stepsize (or learning rate) for optim.method = "GD".}
+\item{stepsize}{The stepsize (or learning rate) for optim.method = "GD" and "ADAM".}
 
 \item{details}{Logical value: if \code{TRUE}, detailed results will be printed out when running \code{glm.gMIC}.}
 }
@@ -65,8 +64,7 @@ A list of objects as follows,
 }
 }
 \description{
-Since the gMIC penality is non-convex, multiple solutions may exist. We use multiple starting points for the optimization. For each optimization,
-a simulated anealing or GenSA (depending on the \code{Global.GenSA} argument) is applied and maybe followed by the BFGS (if \code{BFGS=TRUE}).
+The gMIC Function for (Group) Variable Selection in Generalized Linear Model
 }
 \examples{
 library(MASS)

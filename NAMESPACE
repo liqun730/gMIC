@@ -3,7 +3,6 @@
 export(LoglikPen)
 export(LoglikPenGLM)
 export(adam_gmic)
-export(gd_gmic)
 export(glm.gMIC)
 export(grad_gmic)
 export(orthogonalize)

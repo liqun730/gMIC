@@ -4,12 +4,10 @@
 \alias{LoglikPenGLM}
 \title{Compute the penalized log likelihood for GLM with MIC penalty via R function \code{glm}}
 \usage{
-LoglikPenGLM(beta, group, X, y, lambda, a, family = gaussian(link =
+LoglikPenGLM(gamma, group, X, y, lambda, a, family = gaussian(link =
   "identity"))
 }
 \arguments{
-\item{beta}{A p-dimensional vector containing the regression ceofficients.}
-
 \item{group}{The group structure of the model. For example, assume that X has 4 columns and group=c(1,1,2,2).
 It means the first 2 features form a group of variables and the last 2 features form another group of variables.}
 
@@ -26,6 +24,8 @@ It can be specified as any value of the user's own choice.}
 of a call to a family function since \code{glm.fit} is used here. In other words, it can NOT be specified as a character
 string naming a family function nor a family function. See \code{\link[stats]{glm}} and \code{\link[stats]{family}} for
 details of family functions.}
+
+\item{beta}{A p-dimensional vector containing the regression ceofficients.}
 }
 \value{
 The value of the penalized log likelihood function evaluated at beta.
